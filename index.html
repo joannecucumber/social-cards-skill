@@ -3,1848 +3,528 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>社群圖產生器</title>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
-<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+<title>Social Cards — 文章變成社群圖片</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
-  font-family: 'Noto Sans TC', -apple-system, sans-serif;
-  background: #F2F0ED;
-  color: #2A2A2A;
+  font-family: 'Inter', 'Noto Sans TC', -apple-system, sans-serif;
+  background: #F7F5F3;
+  color: #37322F;
   min-height: 100vh;
+  overflow-x: hidden;
 }
-.toolbar {
-  background: #1A1A1A;
-  color: #fff;
-  padding: 12px 24px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  flex-wrap: wrap;
+.serif { font-family: 'Instrument Serif', serif; }
+
+/* === NAV === */
+.nav-outer {
+  position: fixed; top: 9px; left: 0; right: 0; z-index: 100;
+  display: flex; justify-content: center;
 }
-.toolbar h1 { font-size: 18px; font-weight: 700; flex: 1; }
-.toolbar button, .toolbar label {
-  background: #C45A28;
-  color: #fff;
-  border: none;
-  padding: 8px 20px;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  font-family: inherit;
+.nav-bar {
+  max-width: 700px; width: 100%;
+  padding: 6px 8px 6px 16px;
+  background: #F7F5F3;
+  border-radius: 50px;
+  box-shadow: 0 0 0 2px #fff;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.nav-brand { font-size: 18px; font-weight: 600; color: #2F3037; }
+.nav-links { display: flex; gap: 16px; }
+.nav-links a {
+  color: rgba(49,45,43,0.8); font-size: 13px; font-weight: 500;
+  text-decoration: none; transition: color 0.2s;
+}
+.nav-links a:hover { color: #37322F; }
+.nav-right { display: flex; gap: 8px; }
+.btn-ghost {
+  padding: 6px 14px; background: #fff; border-radius: 50px;
+  border: none; font-size: 13px; font-weight: 500; color: #37322F;
+  box-shadow: 0 1px 2px rgba(55,50,47,0.12); cursor: pointer;
+  font-family: inherit; text-decoration: none;
+}
+.btn-primary {
+  padding: 6px 14px; background: #37322F; border-radius: 50px;
+  border: none; font-size: 13px; font-weight: 500; color: #fff;
+  box-shadow: inset 0 0 0 2.5px rgba(255,255,255,0.08); cursor: pointer;
+  font-family: inherit; text-decoration: none;
   transition: background 0.2s;
 }
-.toolbar button:hover, .toolbar label:hover { background: #E8764A; }
-.toolbar select {
-  background: #333;
-  color: #fff;
-  border: 1px solid #555;
-  padding: 8px 12px;
-  border-radius: 6px;
-  font-size: 14px;
-  font-family: inherit;
-  cursor: pointer;
-}
-.toolbar input[type="file"] { display: none; }
-.app { display: flex; height: calc(100vh - 56px); }
-.editor {
-  width: 420px;
-  min-width: 420px;
-  background: #1E1E1E;
-  display: flex;
-  flex-direction: column;
-  border-right: 1px solid #333;
-}
-.editor-tabs {
-  display: flex;
-  align-items: center;
-  border-bottom: 1px solid #333;
-  padding: 0 4px;
-}
-.tab-btn {
-  background: none;
-  border: none;
-  color: #777;
-  font-size: 13px;
-  font-family: inherit;
-  padding: 10px 14px;
-  cursor: pointer;
-  border-bottom: 2px solid transparent;
-  transition: color 0.2s, border-color 0.2s;
-}
-.tab-btn:hover { color: #ccc; }
-.tab-btn.active { color: #fff; border-bottom-color: #C45A28; }
-.guide-panel {
-  flex: 1;
-  overflow-y: auto;
-  padding: 20px;
-  color: #ccc;
-  font-size: 13px;
-  line-height: 1.8;
-}
-.editor textarea {
-  flex: 1;
-  background: #1E1E1E;
-  color: #D4D4D4;
-  border: none;
-  padding: 16px;
-  font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
-  font-size: 13px;
-  line-height: 1.7;
-  resize: none;
-  outline: none;
-}
-.preview {
-  flex: 1;
-  overflow-y: auto;
-  padding: 32px;
-  display: flex;
-  flex-wrap: wrap;
-  align-content: flex-start;
-  gap: 24px;
-  justify-content: center;
-}
-.slide-wrapper {
-  width: 340px;
-  height: 425px;
-  overflow: hidden;
-  border-radius: 12px;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.12);
-  position: relative;
-  cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-.slide-wrapper:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
-}
-.slide-wrapper .slide-number {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  background: rgba(0,0,0,0.5);
-  color: #fff;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  font-weight: 700;
-  z-index: 10;
-}
-.slide-wrapper .download-btn {
-  position: absolute;
-  bottom: 8px;
-  right: 8px;
-  background: #C45A28;
-  color: #fff;
-  border: none;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  opacity: 0;
-  transition: opacity 0.2s;
-  z-index: 10;
-  font-size: 16px;
-}
-.slide-wrapper:hover .download-btn { opacity: 1; }
+.btn-primary:hover { background: #2A2520; }
 
-/* Slides — dimensions set via JS */
-.slide {
-  font-family: 'Noto Sans TC', sans-serif;
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  overflow: hidden;
-  transform-origin: top left;
+/* === LAYOUT === */
+.page-container {
+  max-width: 1060px; margin: 0 auto; position: relative;
+  border-left: 1px solid rgba(55,50,47,0.12);
+  border-right: 1px solid rgba(55,50,47,0.12);
 }
-
-/* === COVER (always dark) === */
-.slide.cover {
-  color: #fff;
-  padding: 80px 72px;
-}
-.slide.cover .tag {
-  display: inline-block;
-  color: #fff;
-  padding: 8px 20px;
-  border-radius: 4px;
-  font-size: 24px;
-  font-weight: 700;
-  margin-bottom: 48px;
-}
-.slide.cover .cover-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-.slide.cover h1 {
-  font-size: 80px;
-  font-weight: 900;
-  line-height: 1.25;
-  margin-bottom: 32px;
-  letter-spacing: 1px;
-}
-.slide.cover h2 {
-  font-size: 32px;
-  font-weight: 500;
-  line-height: 1.5;
-  margin-bottom: 16px;
-  opacity: 0.85;
-}
-.slide.cover .subtitle {
-  font-size: 26px;
-  font-weight: 400;
-  line-height: 1.6;
-  opacity: 0.7;
-  letter-spacing: 2px;
-}
-.slide.cover .cover-footer {
-  border-top: 3px solid rgba(255,255,255,0.3);
-  padding-top: 24px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 22px;
-  opacity: 0.7;
-}
-
-/* === CONTENT SLIDE === */
-.slide.content-slide {
-  padding: 64px 72px 64px 66px;
-  border-left: 6px solid;
-}
-.slide.content-slide .slide-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 40px;
-}
-.slide.content-slide .tag {
-  display: inline-block;
-  color: #fff;
-  padding: 8px 20px;
-  border-radius: 4px;
-  font-size: 22px;
-  font-weight: 700;
-}
-.slide.content-slide .page-num {
-  font-size: 24px;
-  font-weight: 400;
-  letter-spacing: 1px;
-}
-.slide.content-slide .slide-body {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-.slide.content-slide h1 {
-  font-size: 64px;
-  font-weight: 900;
-  line-height: 1.3;
-  margin-bottom: 40px;
-}
-.slide.content-slide h2 {
-  font-size: 40px;
-  font-weight: 900;
-  line-height: 1.4;
-  margin-bottom: 28px;
-}
-.slide.content-slide h3 {
-  font-size: 34px;
-  font-weight: 700;
-  line-height: 1.4;
-  margin-bottom: 24px;
-}
-.slide.content-slide p {
-  font-size: 30px;
-  line-height: 1.8;
-  margin-bottom: 32px;
-}
-
-/* --- List items with colored dot --- */
-.slide.content-slide .list-group { margin-bottom: 32px; }
-.slide.content-slide .list-item {
-  font-size: 30px;
-  line-height: 1.7;
-  padding-left: 40px;
-  position: relative;
-  margin-bottom: 16px;
-}
-/* dot rendered inline via JS */
-
-/* --- Numbered items: card style --- */
-.slide.content-slide .numbered-card {
-  margin-bottom: 28px;
-  padding: 28px 32px;
-  border-radius: 16px;
-}
-.slide.content-slide .numbered-card .num-badge {
-  font-size: 44px;
-  font-weight: 900;
-  line-height: 1;
-  margin-bottom: 8px;
-}
-.slide.content-slide .numbered-card .num-title {
-  font-size: 32px;
-  font-weight: 700;
-  line-height: 1.5;
-  margin-bottom: 8px;
-}
-.slide.content-slide .numbered-card .num-desc {
-  font-size: 26px;
-  line-height: 1.7;
-  opacity: 0.85;
-}
-
-/* --- Callout with icon --- */
-.slide.content-slide .callout {
-  border-left: 6px solid;
-  padding: 24px 28px 24px 28px;
-  margin-bottom: 32px;
-  font-size: 28px;
-  line-height: 1.7;
-  border-radius: 0 12px 12px 0;
-  display: flex;
-  gap: 16px;
-  align-items: flex-start;
-}
-.slide.content-slide .callout-icon {
-  font-size: 32px;
-  flex-shrink: 0;
-  line-height: 1.7;
-}
-
-/* --- Quote box with decorative quotes --- */
-.slide.content-slide .quote-box {
-  margin-top: auto;
-  border-radius: 16px;
-  padding: 40px 48px;
-  text-align: center;
-  margin-bottom: 24px;
-  position: relative;
-}
-.slide.content-slide .quote-box .quote-mark {
-  font-size: 72px;
-  line-height: 1;
-  opacity: 0.3;
-  font-weight: 900;
-  margin-bottom: -8px;
-}
-.slide.content-slide .quote-box p {
-  font-size: 32px;
-  line-height: 1.7;
-  font-weight: 700;
-  margin-bottom: 0;
-}
-
-/* --- Big number --- */
-.slide.content-slide .big-number {
-  font-size: 160px;
-  font-weight: 900;
-  line-height: 1;
-  margin-bottom: 16px;
-  letter-spacing: -4px;
-}
-
-/* --- Horizontal divider --- */
-.slide.content-slide .slide-divider {
-  height: 2px;
-  border: none;
-  margin: 16px 0 32px 0;
-  opacity: 0.2;
-  border-radius: 1px;
-}
-
-.slide.content-slide .slide-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 22px;
-  padding-top: 16px;
-}
-.slide.content-slide .slide-footer .handle {
-  font-weight: 700;
-}
-
-/* === COMPACT MODE (auto-applied when content is dense) === */
-.slide.content-slide.compact { padding-top: 48px; padding-bottom: 48px; }
-.slide.content-slide.compact h1 { font-size: 48px; margin-bottom: 24px; }
-.slide.content-slide.compact .numbered-card { padding: 16px 24px; margin-bottom: 12px; }
-.slide.content-slide.compact .numbered-card .num-badge { font-size: 32px; margin-bottom: 4px; }
-.slide.content-slide.compact .numbered-card .num-title { font-size: 26px; margin-bottom: 4px; }
-.slide.content-slide.compact .numbered-card .num-desc { font-size: 22px; line-height: 1.5; }
-.slide.content-slide.compact p { font-size: 24px; margin-bottom: 16px; }
-.slide.content-slide.compact .list-item { font-size: 24px; margin-bottom: 8px; }
-.slide.content-slide.compact .slide-head { margin-bottom: 24px; }
-
-/* === STATEMENT SLIDE (title-only, centered) === */
-.slide.content-slide.statement-slide {
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  padding: 80px 72px;
-}
-.slide.content-slide.statement-slide .slide-head {
-  position: absolute;
-  top: 64px;
-  left: 66px;
-  right: 72px;
-}
-.slide.content-slide.statement-slide .slide-body {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-.slide.content-slide.statement-slide h1 {
-  font-size: 76px;
-  line-height: 1.35;
-  margin-bottom: 0;
-}
-.slide.content-slide.statement-slide .quote-box {
-  margin-top: 48px;
-}
-.slide.content-slide.statement-slide .slide-footer {
-  position: absolute;
-  bottom: 48px;
-  left: 66px;
-  right: 72px;
-}
-
-/* === HERO IMAGE SLIDE === */
-.slide.content-slide.has-hero {
-  padding: 0;
-  border-left: none;
-}
-.slide.content-slide.has-hero .hero-image {
-  width: 100%;
-  object-fit: cover;
-  display: block;
-}
-.slide.content-slide.has-hero .hero-body {
-  display: flex;
-  flex-direction: column;
-  padding: 36px 72px 64px 66px;
-  border-left: 6px solid;
-}
-.slide.content-slide.has-hero .hero-body h1 { font-size: 52px; margin-bottom: 24px; }
-.slide.content-slide.has-hero .hero-body h2 { font-size: 34px; margin-bottom: 20px; }
-.slide.content-slide.has-hero .hero-body p { font-size: 26px; margin-bottom: 20px; }
-.slide.content-slide.has-hero .hero-body .list-item { font-size: 26px; }
-.slide.content-slide.has-hero .hero-body .numbered-card { padding: 20px 24px; margin-bottom: 20px; }
-.slide.content-slide.has-hero .hero-body .callout { font-size: 24px; }
-.slide.content-slide.has-hero .hero-body .quote-box p { font-size: 26px; }
-.slide.content-slide.has-hero .hero-body .slide-footer { font-size: 20px; padding-top: 12px; }
-.slide.content-slide.has-hero.statement-slide .hero-body {
-  border-left: none;
-  padding: 36px 72px 64px 72px;
-}
-.slide.content-slide.has-hero.statement-slide .hero-body .slide-head {
-  position: relative;
-  top: auto;
-  left: auto;
-  right: auto;
-}
-.slide.content-slide.has-hero.statement-slide .hero-body .slide-body {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-}
-.slide.content-slide.has-hero.statement-slide .hero-body .slide-footer {
-  position: relative;
-  bottom: auto;
-  left: auto;
-  right: auto;
-}
-.slide.content-slide.has-hero.statement-slide .hero-body h1 {
-  font-size: 60px;
-  margin-bottom: 0;
-}
-
-/* === CTA SLIDE === */
-.slide.cta-slide {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: 80px 72px;
-}
-.slide.cta-slide .cta-icon {
-  font-size: 120px;
-  margin-bottom: 48px;
-  opacity: 0.9;
-}
-.slide.cta-slide h1 {
-  font-size: 72px;
-  font-weight: 900;
-  line-height: 1.3;
-  margin-bottom: 32px;
-}
-.slide.cta-slide p {
-  font-size: 34px;
-  line-height: 1.7;
-  margin-bottom: 20px;
-  opacity: 0.8;
-}
-.slide.cta-slide .cta-handle {
-  font-size: 48px;
-  font-weight: 900;
-  margin-top: 40px;
-  letter-spacing: 1px;
-}
-.slide.cta-slide .cta-divider {
-  width: 80px;
-  height: 4px;
-  border-radius: 2px;
-  margin: 32px auto;
-}
-.slide.cta-slide .cta-actions {
-  margin-top: 48px;
-  display: flex;
-  gap: 24px;
-}
-.slide.cta-slide .cta-pill {
-  padding: 16px 40px;
-  border-radius: 40px;
-  font-size: 28px;
-  font-weight: 700;
-  border: 3px solid;
-}
-
-/* === BRAND SETTINGS PANEL === */
-.brand-panel {
-  position: fixed;
-  top: 56px;
-  right: 0;
-  width: 320px;
-  background: #1E1E1E;
-  border-left: 1px solid #333;
-  padding: 24px;
-  z-index: 200;
-  display: none;
-  max-height: calc(100vh - 56px);
-  overflow-y: auto;
-  box-shadow: -4px 0 24px rgba(0,0,0,0.3);
-}
-.brand-panel.active { display: block; }
-.brand-panel h3 {
-  color: #fff;
-  font-size: 16px;
-  font-weight: 700;
-  margin-bottom: 16px;
-}
-.brand-panel label {
-  display: block;
-  color: #999;
-  font-size: 12px;
-  margin-bottom: 4px;
-  margin-top: 12px;
-  background: none;
-  padding: 0;
-  border-radius: 0;
-  cursor: default;
-}
-.brand-panel input[type="text"] {
-  width: 100%;
-  background: #2A2A2A;
-  border: 1px solid #444;
-  color: #fff;
-  padding: 8px 12px;
-  border-radius: 6px;
-  font-size: 14px;
-  font-family: inherit;
-}
-.brand-panel .save-btn {
-  margin-top: 20px;
-  width: 100%;
-  background: #C45A28;
-  color: #fff;
-  border: none;
-  padding: 10px;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  font-family: inherit;
-}
-.brand-panel .save-btn:hover { background: #E8764A; }
-.brand-panel .clear-btn {
-  margin-top: 8px;
-  width: 100%;
-  background: none;
-  color: #777;
-  border: 1px solid #444;
-  padding: 8px;
-  border-radius: 6px;
-  font-size: 13px;
-  cursor: pointer;
-  font-family: inherit;
-}
-
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  color: #999;
-  text-align: center;
-  gap: 12px;
-}
-.empty-state .icon { font-size: 48px; opacity: 0.3; }
-.empty-state p { font-size: 14px; }
-.loading-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.5);
-  display: none;
-  align-items: center;
-  justify-content: center;
-  z-index: 999;
-}
-.loading-overlay.active { display: flex; }
-.loading-spinner {
+.page-container::before, .page-container::after {
+  content: ''; position: absolute; top: 0; bottom: 0; width: 1px;
   background: #fff;
-  padding: 24px 40px;
-  border-radius: 12px;
-  font-size: 16px;
-  font-weight: 500;
 }
-@media (max-width: 900px) {
-  .app { flex-direction: column; height: auto; }
-  .editor { width: 100%; min-width: 0; height: 50vh; }
-  .preview { padding: 16px; }
-  .slide-wrapper { width: 280px; height: 350px; }
+.page-container::before { left: -2px; }
+.page-container::after { right: -2px; }
+
+/* === HERO === */
+.hero {
+  padding: 216px 0 80px;
+  text-align: center;
+  border-bottom: 1px solid rgba(55,50,47,0.06);
+  position: relative;
+}
+.hero h1 {
+  font-family: 'Instrument Serif', serif;
+  font-size: 72px; font-weight: 400; line-height: 1.15;
+  max-width: 750px; margin: 0 auto 24px;
+  color: #37322F;
+}
+.hero h1 em {
+  font-style: italic; color: rgba(55,50,47,0.6);
+}
+.hero p {
+  font-size: 18px; font-weight: 500; line-height: 1.6;
+  color: rgba(55,50,47,0.8); max-width: 500px; margin: 0 auto 48px;
+}
+.hero-cta {
+  display: flex; justify-content: center; gap: 12px;
+}
+.hero-cta .btn-primary {
+  padding: 10px 48px; font-size: 15px; height: 44px;
+  display: flex; align-items: center;
+}
+.hero-cta .btn-ghost {
+  padding: 10px 32px; font-size: 15px; height: 44px;
+  display: flex; align-items: center;
+}
+
+/* === BADGE ROW === */
+.badges {
+  display: flex; justify-content: center; gap: 12px;
+  margin-bottom: 32px;
+}
+.badge {
+  padding: 6px 14px;
+  background: #fff;
+  border: 1px solid rgba(2,6,23,0.08);
+  border-radius: 90px;
+  box-shadow: 0 0 0 4px rgba(55,50,47,0.05);
+  font-size: 12px; font-weight: 500; color: #37322F;
+  display: flex; align-items: center; gap: 8px;
+}
+
+/* === PREVIEW === */
+.preview-section {
+  padding: 0 44px 80px;
+  display: flex; justify-content: center;
+}
+.preview-mockup {
+  width: 100%; max-width: 960px;
+  background: #fff;
+  border-radius: 9px;
+  box-shadow: 0 0 0 0.9px rgba(0,0,0,0.08);
+  overflow: hidden;
+  aspect-ratio: 16/10;
+  display: flex; align-items: center; justify-content: center;
+  position: relative;
+}
+.preview-mockup img {
+  width: 100%; height: 100%; object-fit: cover;
+}
+.preview-placeholder {
+  color: #828387; font-size: 14px;
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+}
+.preview-placeholder span { font-size: 48px; opacity: 0.2; }
+
+/* === FEATURE CARDS === */
+.features {
+  border-top: 1px solid #e0dedb;
+  border-bottom: 1px solid #e0dedb;
+}
+.features-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+}
+.feature-card {
+  padding: 32px; border-right: 1px solid #e0dedb;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.feature-card:last-child { border-right: none; }
+.feature-card h3 {
+  font-size: 14px; font-weight: 600; color: #49423D; line-height: 1.6;
+}
+.feature-card p {
+  font-size: 14px; color: #605A57; line-height: 1.6;
+}
+.feature-accent {
+  width: 32px; height: 2px; background: #37322F; margin-bottom: 8px;
+}
+
+/* === HOW IT WORKS === */
+.how-section {
+  padding: 80px 44px;
+  border-bottom: 1px solid rgba(55,50,47,0.12);
+}
+.section-label {
+  font-size: 12px; font-weight: 600; color: rgba(55,50,47,0.5);
+  text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px;
+}
+.section-title {
+  font-family: 'Instrument Serif', serif;
+  font-size: 48px; font-weight: 400; line-height: 1.2;
+  color: #37322F; margin-bottom: 48px; max-width: 600px;
+}
+.steps {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px;
+}
+.step {
+  display: flex; flex-direction: column; gap: 16px;
+}
+.step-num {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: #37322F; color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 600;
+}
+.step h4 {
+  font-size: 16px; font-weight: 600; color: #49423D;
+}
+.step p {
+  font-size: 14px; color: #605A57; line-height: 1.7;
+}
+
+/* === THEMES SHOWCASE === */
+.themes-section {
+  padding: 80px 44px;
+  border-bottom: 1px solid rgba(55,50,47,0.12);
+}
+.themes-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
+  margin-top: 48px;
+}
+.theme-chip {
+  height: 48px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 600; color: #fff;
+  cursor: default; transition: transform 0.2s;
+}
+.theme-chip:hover { transform: translateY(-2px); }
+
+/* === PAGE TYPES === */
+.types-section {
+  padding: 80px 44px;
+  border-bottom: 1px solid rgba(55,50,47,0.12);
+}
+.types-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
+  margin-top: 48px;
+}
+.type-card {
+  padding: 24px; border: 1px solid #e0dedb; border-radius: 12px;
+  background: #fff;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.type-card .type-icon {
+  font-size: 24px; margin-bottom: 4px;
+}
+.type-card h4 { font-size: 14px; font-weight: 600; color: #49423D; }
+.type-card p { font-size: 13px; color: #605A57; line-height: 1.6; }
+
+/* === CTA === */
+.cta-section {
+  padding: 80px 24px;
+  text-align: center;
+  border-top: 1px solid rgba(55,50,47,0.12);
+  border-bottom: 1px solid rgba(55,50,47,0.12);
+  position: relative; overflow: hidden;
+}
+.cta-section::before {
+  content: ''; position: absolute; inset: 0;
+  background: repeating-linear-gradient(
+    -45deg, transparent, transparent 15px,
+    rgba(3,7,18,0.03) 15px, rgba(3,7,18,0.03) 16px
+  );
+}
+.cta-content {
+  position: relative; z-index: 1;
+  max-width: 586px; margin: 0 auto;
+}
+.cta-section h2 {
+  font-size: 42px; font-weight: 600; color: #49423D;
+  line-height: 1.3; margin-bottom: 16px;
+  letter-spacing: -0.5px;
+}
+.cta-section p {
+  font-size: 16px; color: #605A57; line-height: 1.7;
+  margin-bottom: 32px;
+}
+
+/* === FOOTER === */
+.footer {
+  padding: 40px 44px 0;
+}
+.footer-top {
+  display: flex; justify-content: space-between;
+  padding-bottom: 32px;
+}
+.footer-brand h3 { font-size: 20px; font-weight: 600; color: #49423D; margin-bottom: 12px; }
+.footer-brand p { font-size: 14px; color: rgba(73,66,61,0.9); margin-bottom: 24px; }
+.footer-social { display: flex; gap: 16px; }
+.footer-social a {
+  width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;
+  color: #49423D; text-decoration: none;
+}
+.footer-links {
+  display: flex; gap: 48px;
+}
+.footer-col h4 {
+  font-size: 14px; font-weight: 500; color: rgba(73,66,61,0.5); margin-bottom: 12px;
+}
+.footer-col a {
+  display: block; font-size: 14px; color: #49423D;
+  text-decoration: none; line-height: 2;
+  transition: color 0.2s;
+}
+.footer-col a:hover { color: #37322F; }
+.footer-bottom {
+  height: 48px; border-top: 1px solid rgba(55,50,47,0.12);
+  position: relative; overflow: hidden;
+}
+.footer-bottom::before {
+  content: ''; position: absolute; inset: 0;
+  background: repeating-linear-gradient(
+    -45deg, transparent, transparent 15px,
+    rgba(3,7,18,0.03) 15px, rgba(3,7,18,0.03) 16px
+  );
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 768px) {
+  .hero h1 { font-size: 36px; }
+  .hero { padding: 140px 24px 60px; }
+  .features-grid { grid-template-columns: 1fr; }
+  .feature-card { border-right: none; border-bottom: 1px solid #e0dedb; }
+  .feature-card:last-child { border-bottom: none; }
+  .steps { grid-template-columns: 1fr; }
+  .themes-grid { grid-template-columns: repeat(2, 1fr); }
+  .types-grid { grid-template-columns: repeat(2, 1fr); }
+  .nav-links { display: none; }
+  .section-title { font-size: 32px; }
+  .cta-section h2 { font-size: 28px; }
+  .footer-top { flex-direction: column; gap: 32px; }
+  .footer-links { flex-wrap: wrap; gap: 32px; }
+  .preview-section { padding: 0 16px 60px; }
+  .how-section, .themes-section, .types-section { padding: 60px 24px; }
+  .hero-cta { flex-direction: column; align-items: center; }
+  .badges { flex-wrap: wrap; }
 }
 </style>
 </head>
 <body>
 
-<div class="toolbar">
-  <h1>社群圖產生器</h1>
-  <select id="themeSelect" onchange="applyThemeMode()">
-    <option value="暖橘">暖橘</option>
-    <option value="vibe-reader">Vibe Reader</option>
-    <option value="莓果紫">莓果紫</option>
-    <option value="森林綠">森林綠</option>
-    <option value="玫瑰金">玫瑰金</option>
-    <option value="日落粉">日落粉</option>
-    <option value="海洋藍">海洋藍</option>
-    <option value="午夜">午夜</option>
-  </select>
-  <select id="modeSelect" onchange="applyThemeMode()">
-    <option value="light">Light</option>
-    <option value="dark">Dark</option>
-  </select>
-  <select id="coverSelect" onchange="applyThemeMode()">
-    <option value="gradient">封面：漸層</option>
-    <option value="solid">封面：純色</option>
-  </select>
-  <select id="ratioSelect" onchange="applyThemeMode()">
-    <option value="4:5">4:5 IG 直式</option>
-    <option value="1:1">1:1 正方形</option>
-    <option value="9:16">9:16 Story</option>
-    <option value="16:9">16:9 橫式</option>
-  </select>
-  <label>上傳 .md<input type="file" id="fileInput" accept=".md,.txt,.markdown"></label>
-  <button onclick="generate()">產生圖片</button>
-  <button onclick="downloadAll()">全部下載</button>
-  <button onclick="toggleBrandPanel()" style="background:#555">品牌設定</button>
-</div>
-
-<div class="brand-panel" id="brandPanel">
-  <h3>品牌預設值</h3>
-  <p style="color:#777;font-size:12px;margin-bottom:12px">Markdown 未設定時自動帶入</p>
-  <label>Handle（帳號）</label>
-  <input type="text" id="brandHandle" placeholder="@yourstudio">
-  <label>Source（來源）</label>
-  <input type="text" id="brandSource" placeholder="你的品牌名稱">
-  <label>Tag（預設標籤）</label>
-  <input type="text" id="brandTag" placeholder="好文分享">
-  <label>預設主題色</label>
-  <input type="text" id="brandTheme" placeholder="暖橘">
-  <label>預設模式</label>
-  <input type="text" id="brandMode" placeholder="light">
-  <button class="save-btn" onclick="saveBrand()">儲存設定</button>
-  <button class="clear-btn" onclick="clearBrand()">清除設定</button>
-</div>
-
-<div class="app">
-  <div class="editor">
-    <div class="editor-tabs">
-      <button class="tab-btn active" onclick="switchTab('editor')">Markdown</button>
-      <button class="tab-btn" onclick="switchTab('guide')">格式說明</button>
-      <span style="flex:1"></span>
-      <span style="font-size:11px; color:#666; padding-right:12px">即時預覽 ON</span>
+<!-- NAV -->
+<div class="nav-outer">
+  <nav class="nav-bar">
+    <div style="display:flex;align-items:center;gap:20px">
+      <div class="nav-brand">Social Cards</div>
+      <div class="nav-links">
+        <a href="#features">Features</a>
+        <a href="#how">How it works</a>
+        <a href="skill.html">Skill</a>
+      </div>
     </div>
-    <textarea id="mdInput" placeholder="在這裡貼上 Markdown..."></textarea>
-    <div id="guidePanel" class="guide-panel" style="display:none"></div>
-  </div>
-  <div class="preview" id="preview">
-    <div class="empty-state">
-      <div class="icon">&#9998;</div>
-      <p>在左側貼上 Markdown，按「產生圖片」</p>
+    <div class="nav-right">
+      <a href="app.html" class="btn-primary">Open App</a>
     </div>
-  </div>
+  </nav>
 </div>
 
-<div id="renderContainer" style="position:absolute;left:-9999px;top:0;"></div>
-<div class="loading-overlay" id="loading">
-  <div class="loading-spinner">下載中...</div>
+<div class="page-container">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="badges">
+      <div class="badge">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#37322F" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        Claude Code Skill
+      </div>
+      <div class="badge">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#37322F" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+        Open Source
+      </div>
+    </div>
+    <h1>
+      Turn any article into<br>
+      <em>beautiful carousel</em> images
+    </h1>
+    <p>
+      Paste your article, answer a few questions, get Instagram-ready carousel images. Powered by Claude Code.
+    </p>
+    <div class="hero-cta">
+      <a href="app.html" class="btn-primary">Start creating</a>
+      <a href="skill.html" class="btn-ghost">Download Skill</a>
+    </div>
+  </section>
+
+  <!-- PREVIEW -->
+  <section class="preview-section">
+    <div class="preview-mockup">
+      <div class="preview-placeholder">
+        <span>&#9998;</span>
+        <div>Paste Markdown on the left, see carousel on the right</div>
+        <a href="app.html" class="btn-primary" style="margin-top:12px">Try it now</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section class="features" id="features">
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-accent"></div>
+        <h3>Markdown in, images out</h3>
+        <p>Write in Markdown, get pixel-perfect carousel images. No design tool needed.</p>
+      </div>
+      <div class="feature-card">
+        <h3>7 page types, auto-detected</h3>
+        <p>Paragraph, steps, list, big number, statement, hero image, comparison. The tool picks the right layout.</p>
+      </div>
+      <div class="feature-card">
+        <h3>One command with Claude Code</h3>
+        <p>Install the skill, type /social-cards, paste your article. Done. PNG files in your folder.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="how-section" id="how">
+    <div class="section-label">How it works</div>
+    <h2 class="section-title">From article to carousel in three steps</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <h4>Paste your content</h4>
+        <p>Blog post, podcast notes, thread, any text. Paste it into the editor or use the /social-cards skill in Claude Code.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <h4>Customize</h4>
+        <p>Pick a theme color, set your handle, choose light or dark mode. Or let AI decide everything for you.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <h4>Download &amp; post</h4>
+        <p>Get 5-7 PNG images at 1080x1350 (2x resolution). Ready to upload to Instagram, Twitter, or LinkedIn.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- THEMES -->
+  <section class="themes-section">
+    <div class="section-label">Themes</div>
+    <h2 class="section-title">7 color themes, light &amp; dark mode</h2>
+    <div class="themes-grid">
+      <div class="theme-chip" style="background:#C45A28">Warm Orange</div>
+      <div class="theme-chip" style="background:#7B2D8E">Berry Purple</div>
+      <div class="theme-chip" style="background:#2D6B4F">Forest Green</div>
+      <div class="theme-chip" style="background:#B76E79">Rose Gold</div>
+      <div class="theme-chip" style="background:#D4456B">Sunset Pink</div>
+      <div class="theme-chip" style="background:#1A6B8A">Ocean Blue</div>
+      <div class="theme-chip" style="background:#2A2A2A">Midnight</div>
+    </div>
+  </section>
+
+  <!-- PAGE TYPES -->
+  <section class="types-section">
+    <div class="section-label">Page types</div>
+    <h2 class="section-title">Every page looks different</h2>
+    <div class="types-grid">
+      <div class="type-card">
+        <div class="type-icon">T</div>
+        <h4>Paragraph</h4>
+        <p>Title + body text + quote. For explaining concepts.</p>
+      </div>
+      <div class="type-card">
+        <div class="type-icon">&oplus;</div>
+        <h4>Numbered Steps</h4>
+        <p>Card-style ①②③ with descriptions. For how-to content.</p>
+      </div>
+      <div class="type-card">
+        <div class="type-icon">&bull;</div>
+        <h4>List</h4>
+        <p>Bullet points with colored dots. For features and traits.</p>
+      </div>
+      <div class="type-card">
+        <div class="type-icon">%</div>
+        <h4>Big Number</h4>
+        <p>160px stat in theme color. For data-driven impact.</p>
+      </div>
+      <div class="type-card">
+        <div class="type-icon">&mdash;</div>
+        <h4>Statement</h4>
+        <p>One line, centered, bold. Auto-detected when a page has only a title.</p>
+      </div>
+      <div class="type-card">
+        <div class="type-icon">&#9632;</div>
+        <h4>Hero Image</h4>
+        <p>Top 28% full-bleed image + text below. For case studies.</p>
+      </div>
+      <div class="type-card">
+        <div class="type-icon">&harr;</div>
+        <h4>Comparison</h4>
+        <p>Lists + callout. For A vs B analysis.</p>
+      </div>
+      <div class="type-card">
+        <div class="type-icon">&rarr;</div>
+        <h4>CTA</h4>
+        <p>Auto-generated ending page. Supports zh / en / ja / ko.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-section">
+    <div class="cta-content">
+      <h2>Ready to make your first carousel?</h2>
+      <p>Open the editor and paste your content. Or install the Claude Code skill for a fully automated workflow.</p>
+      <div class="hero-cta">
+        <a href="app.html" class="btn-primary">Open editor</a>
+        <a href="skill.html" class="btn-ghost">Download Skill</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <h3>Social Cards</h3>
+        <p>Article to carousel, effortlessly.</p>
+        <div class="footer-social">
+          <a href="https://github.com/joannecucumber/social-cards-skill" target="_blank">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="#49423D"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0112 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.300 24 12c0-6.627-5.374-12-12-12z"/></svg>
+          </a>
+        </div>
+      </div>
+      <div class="footer-links">
+        <div class="footer-col">
+          <h4>Product</h4>
+          <a href="app.html">Editor</a>
+          <a href="skill.html">Claude Code Skill</a>
+          <a href="FORMAT.md">Format Spec</a>
+        </div>
+        <div class="footer-col">
+          <h4>Resources</h4>
+          <a href="https://github.com/joannecucumber/social-cards-skill" target="_blank">GitHub</a>
+          <a href="https://github.com/joannecucumber/social-cards-skill/issues" target="_blank">Issues</a>
+          <a href="FORMAT.md">Documentation</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom"></div>
+  </footer>
+
 </div>
-
-<script>
-// === THEMES ===
-var THEMES = {
-  '暖橘': {
-    accent: '#C45A28',
-    accentLight: '#E8764A',
-    coverGradient: 'linear-gradient(175deg, #0D0D0D 0%, #1A1008 25%, #3A1A0C 50%, #8B3A18 75%, #C45A28 100%)',
-    coverSolid: '#C45A28',
-    coverSolidText: '#FFFFFF',
-    light: {
-      bg: '#FFFFFF',
-      text: '#2A2A2A',
-      subtext: '#444444',
-      muted: '#999999',
-      heading: '#1A1A1A',
-      calloutBg: '#F5F0EB',
-      quoteBg: '#F5F0EB',
-      listDot: '#1A1A1A'
-    },
-    dark: {
-      bg: '#1A1A1A',
-      text: '#E0E0E0',
-      subtext: '#BBBBBB',
-      muted: '#777777',
-      heading: '#FFFFFF',
-      calloutBg: '#2A2520',
-      quoteBg: '#2A2520',
-      listDot: '#FFFFFF'
-    }
-  },
-  'vibe-reader': {
-    accent: '#1D274A',
-    accentLight: '#48E6B9',
-    coverGradient: 'linear-gradient(175deg, #0D0D0D 0%, #1A1008 25%, #122C57 50%, #1D4381 75%, #2757A5 100%)',
-    coverSolid: '#1D274A',
-    coverSolidText: '#FFFFFF',
-    light: {
-      bg: '#FFFFFF',
-      text: '#2A2A2A',
-      subtext: '#444444',
-      muted: '#999999',
-      heading: '#1A1A1A',
-      calloutBg: '#EDF1F8',
-      quoteBg: '#EDF1F8',
-      listDot: '#1A1A1A'
-    },
-    dark: {
-      bg: '#0F1624',
-      text: '#D0D8E8',
-      subtext: '#9AABBF',
-      muted: '#5A6A80',
-      heading: '#FFFFFF',
-      calloutBg: '#1A2540',
-      quoteBg: '#1A2540',
-      listDot: '#FFFFFF'
-    }
-  },
-  '莓果紫': {
-    accent: '#7B2D8E',
-    accentLight: '#D4A5E0',
-    coverGradient: 'linear-gradient(175deg, #0D0D0D 0%, #1A0D1F 25%, #3A1A4C 50%, #6B2580 75%, #7B2D8E 100%)',
-    coverSolid: '#7B2D8E',
-    coverSolidText: '#FFFFFF',
-    light: {
-      bg: '#FFFFFF',
-      text: '#2A2A2A',
-      subtext: '#444444',
-      muted: '#999999',
-      heading: '#1A1A1A',
-      calloutBg: '#F5EDF8',
-      quoteBg: '#F5EDF8',
-      listDot: '#1A1A1A'
-    },
-    dark: {
-      bg: '#170D1F',
-      text: '#DDD0E8',
-      subtext: '#B09ABF',
-      muted: '#6A5A7A',
-      heading: '#FFFFFF',
-      calloutBg: '#2A1A3A',
-      quoteBg: '#2A1A3A',
-      listDot: '#FFFFFF'
-    }
-  },
-  '森林綠': {
-    accent: '#2D6B4F',
-    accentLight: '#5ED4A5',
-    coverGradient: 'linear-gradient(175deg, #0D0D0D 0%, #0D1A12 25%, #1A3A2A 50%, #2D6B4F 75%, #3A8B65 100%)',
-    coverSolid: '#2D6B4F',
-    coverSolidText: '#FFFFFF',
-    light: {
-      bg: '#FFFFFF',
-      text: '#2A2A2A',
-      subtext: '#444444',
-      muted: '#999999',
-      heading: '#1A1A1A',
-      calloutBg: '#EDF8F2',
-      quoteBg: '#EDF8F2',
-      listDot: '#1A1A1A'
-    },
-    dark: {
-      bg: '#0D1A14',
-      text: '#D0E8DB',
-      subtext: '#8ABFA0',
-      muted: '#5A7A68',
-      heading: '#FFFFFF',
-      calloutBg: '#1A3028',
-      quoteBg: '#1A3028',
-      listDot: '#FFFFFF'
-    }
-  },
-  '玫瑰金': {
-    accent: '#B76E79',
-    accentLight: '#E8B4BD',
-    coverGradient: 'linear-gradient(175deg, #0D0D0D 0%, #1A0D10 25%, #4A2030 50%, #8B4A58 75%, #B76E79 100%)',
-    coverSolid: '#B76E79',
-    coverSolidText: '#FFFFFF',
-    light: {
-      bg: '#FFFFFF',
-      text: '#2A2A2A',
-      subtext: '#444444',
-      muted: '#999999',
-      heading: '#1A1A1A',
-      calloutBg: '#F8EDEE',
-      quoteBg: '#F8EDEE',
-      listDot: '#1A1A1A'
-    },
-    dark: {
-      bg: '#1A1015',
-      text: '#E8D5DA',
-      subtext: '#BF9AA5',
-      muted: '#7A5A65',
-      heading: '#FFFFFF',
-      calloutBg: '#30202A',
-      quoteBg: '#30202A',
-      listDot: '#FFFFFF'
-    }
-  },
-  '日落粉': {
-    accent: '#D4456B',
-    accentLight: '#FF8DA1',
-    coverGradient: 'linear-gradient(175deg, #0D0D0D 0%, #1A0D12 25%, #4A1A2A 50%, #8B3050 75%, #D4456B 100%)',
-    coverSolid: '#D4456B',
-    coverSolidText: '#FFFFFF',
-    light: {
-      bg: '#FFFFFF',
-      text: '#2A2A2A',
-      subtext: '#444444',
-      muted: '#999999',
-      heading: '#1A1A1A',
-      calloutBg: '#FCEDF1',
-      quoteBg: '#FCEDF1',
-      listDot: '#1A1A1A'
-    },
-    dark: {
-      bg: '#1A0D12',
-      text: '#E8D0D8',
-      subtext: '#BF8A98',
-      muted: '#7A5060',
-      heading: '#FFFFFF',
-      calloutBg: '#351A28',
-      quoteBg: '#351A28',
-      listDot: '#FFFFFF'
-    }
-  },
-  '海洋藍': {
-    accent: '#1A6B8A',
-    accentLight: '#4DD4E8',
-    coverGradient: 'linear-gradient(175deg, #0D0D0D 0%, #0D151A 25%, #1A3A4C 50%, #1A5570 75%, #1A6B8A 100%)',
-    coverSolid: '#1A6B8A',
-    coverSolidText: '#FFFFFF',
-    light: {
-      bg: '#FFFFFF',
-      text: '#2A2A2A',
-      subtext: '#444444',
-      muted: '#999999',
-      heading: '#1A1A1A',
-      calloutBg: '#EDF5F8',
-      quoteBg: '#EDF5F8',
-      listDot: '#1A1A1A'
-    },
-    dark: {
-      bg: '#0D1820',
-      text: '#D0E0E8',
-      subtext: '#8AB5BF',
-      muted: '#5A7A85',
-      heading: '#FFFFFF',
-      calloutBg: '#1A2E38',
-      quoteBg: '#1A2E38',
-      listDot: '#FFFFFF'
-    }
-  },
-  '午夜': {
-    accent: '#8A8A8A',
-    accentLight: '#D0D0D0',
-    coverGradient: 'linear-gradient(175deg, #050505 0%, #0A0A0A 25%, #151515 50%, #252525 75%, #3A3A3A 100%)',
-    coverSolid: '#2A2A2A',
-    coverSolidText: '#FFFFFF',
-    light: {
-      bg: '#FFFFFF',
-      text: '#2A2A2A',
-      subtext: '#555555',
-      muted: '#999999',
-      heading: '#1A1A1A',
-      calloutBg: '#F0F0F0',
-      quoteBg: '#F0F0F0',
-      listDot: '#1A1A1A'
-    },
-    dark: {
-      bg: '#111111',
-      text: '#D0D0D0',
-      subtext: '#999999',
-      muted: '#555555',
-      heading: '#FFFFFF',
-      calloutBg: '#1E1E1E',
-      quoteBg: '#1E1E1E',
-      listDot: '#FFFFFF'
-    }
-  }
-};
-
-// === RATIOS ===
-var RATIOS = {
-  '4:5':  { w: 1080, h: 1350 },
-  '1:1':  { w: 1080, h: 1080 },
-  '9:16': { w: 1080, h: 1920 },
-  '16:9': { w: 1920, h: 1080 }
-};
-
-function getRatio() {
-  var sel = document.getElementById('ratioSelect');
-  return sel ? sel.value : '4:5';
-}
-
-function getDimensions() {
-  return RATIOS[getRatio()] || RATIOS['4:5'];
-}
-
-// === BRAND SETTINGS ===
-function loadBrand() {
-  try {
-    return JSON.parse(localStorage.getItem('socialCardsBrand') || '{}');
-  } catch(e) { return {}; }
-}
-
-function saveBrand() {
-  var brand = {
-    handle: document.getElementById('brandHandle').value.trim(),
-    source: document.getElementById('brandSource').value.trim(),
-    tag: document.getElementById('brandTag').value.trim(),
-    theme: document.getElementById('brandTheme').value.trim(),
-    mode: document.getElementById('brandMode').value.trim()
-  };
-  localStorage.setItem('socialCardsBrand', JSON.stringify(brand));
-  document.getElementById('brandPanel').classList.remove('active');
-  generate();
-}
-
-function clearBrand() {
-  localStorage.removeItem('socialCardsBrand');
-  document.getElementById('brandHandle').value = '';
-  document.getElementById('brandSource').value = '';
-  document.getElementById('brandTag').value = '';
-  document.getElementById('brandTheme').value = '';
-  document.getElementById('brandMode').value = '';
-}
-
-function toggleBrandPanel() {
-  var panel = document.getElementById('brandPanel');
-  panel.classList.toggle('active');
-  if (panel.classList.contains('active')) {
-    var brand = loadBrand();
-    document.getElementById('brandHandle').value = brand.handle || '';
-    document.getElementById('brandSource').value = brand.source || '';
-    document.getElementById('brandTag').value = brand.tag || '';
-    document.getElementById('brandTheme').value = brand.theme || '';
-    document.getElementById('brandMode').value = brand.mode || '';
-  }
-}
-
-
-// === DEFAULT EXAMPLE ===
-var EXAMPLE_MD = [
-  '---',
-  'tag: 理財入門',
-  'source: 投資筆記整理',
-  'handle: @YOURSTUDIO',
-  'theme: 暖橘',
-  'mode: light',
-  'ratio: 4:5',
-  'cover: solid',
-  '---',
-  '',
-  '# 什麼是美股**ETF**？',
-  '',
-  '五分鐘搞懂最適合新手的投資工具',
-  '',
-  "BEGINNER'S GUIDE TO US ETF",
-  '',
-  '---',
-  '',
-  '[觀念]',
-  '',
-  '# ETF 就是一籃子的**股票**',
-  '',
-  '想像你去超市，不知道要買什麼水果。',
-  '',
-  'ETF 就像一個**水果禮盒**，裡面幫你搭配好了蘋果、香蕉、葡萄。你不用自己挑，買一盒就等於買了一堆水果。',
-  '',
-  '放到股票市場也一樣——買一張 ETF，就等於同時持有裡面幾十甚至幾百家公司的股票。',
-  '',
-  '> 不用選個股，一次打包整個市場。',
-  '',
-  '---',
-  '',
-  '[舉例]',
-  '',
-  '# 最多人買的三檔**美股 ETF**',
-  '',
-  '① **VOO**',
-  '',
-  '追蹤美國前 500 大企業，包含蘋果、微軟、Google。等於買下美國經濟的核心。',
-  '',
-  '② **QQQ**',
-  '',
-  '追蹤那斯達克 100，科技股為主。想押注科技成長就選這檔。',
-  '',
-  '③ **VT**',
-  '',
-  '追蹤全球股市，一檔買下全世界。最懶人、最分散的選擇。',
-  '',
-  '> 不知道選哪個？VOO 是多數人的起點。',
-  '',
-  '---',
-  '',
-  '[比較]',
-  '',
-  '# 為什麼選美股 ETF<br>不選台股？',
-  '',
-  '- 美股 ETF 管理費極低，VOO 只要 **0.03%**，台灣 0050 要 0.32%',
-  '- 美股可以買「小數股」，100 美金就能開始',
-  '- 全球最大市場，流動性高、不容易被操控',
-  '- 配息直接再投入，複利效果更強',
-  '',
-  '|> 台股 ETF 也很好，但美股讓你用更低成本參與全球成長。',
-  '',
-  '> 重點不是選哪邊，是趁早開始。',
-  '',
-  '---',
-  '',
-  '[行動]',
-  '',
-  '# 新手第一步：**開戶就好**',
-  '',
-  '很多人研究了三個月還沒開始，其實最難的不是選股，是踏出第一步。',
-  '',
-  '① **選一個海外券商**',
-  '',
-  'Firstrade、嘉信（Schwab）都是零手續費，中文介面友善。',
-  '',
-  '② **先買一檔 VOO 就好**',
-  '',
-  '不用想太多，定期定額每月投入，時間會幫你工作。',
-  '',
-  '③ **忘記它**',
-  '',
-  '最好的投資策略就是買了之後不要一直看。長期持有，讓複利發酵。',
-  '',
-  '> 最好的投資時機是十年前，其次是現在。'
-].join('\n');
-
-document.getElementById('mdInput').value = EXAMPLE_MD;
-
-// === PARSER ===
-function parseMd(md) {
-  var fmRegex = /^---\n([\s\S]*?)\n---/;
-  var fmMatch = md.match(fmRegex);
-  var brand = loadBrand();
-  var config = {
-    tag: brand.tag || '',
-    source: brand.source || '',
-    handle: brand.handle || '',
-    theme: brand.theme || '暖橘',
-    mode: brand.mode || 'light',
-    cover: 'gradient',
-    ratio: '4:5',
-    cta: 'auto'
-  };
-
-  if (fmMatch) {
-    fmMatch[1].split('\n').forEach(function(line) {
-      var idx = line.indexOf(':');
-      if (idx > -1) {
-        var key = line.slice(0, idx).trim();
-        var val = line.slice(idx + 1).trim();
-        config[key] = val;
-      }
-    });
-    md = md.slice(fmMatch[0].length).trim();
-  }
-
-  var blocks = md.split(/\n---\n/).filter(function(b) { return b.trim(); });
-
-  var hasCta = false;
-  var slides = [];
-
-  blocks.forEach(function(block, i) {
-    var trimmed = block.trim();
-    if (trimmed.toLowerCase() === 'cta' || trimmed.indexOf('cta\n') === 0 || trimmed.indexOf('[cta]') === 0) {
-      var parsed = parseBlock(trimmed.replace(/^cta\n?/i, '').replace(/^\[cta\]\n?/i, '').trim());
-      parsed.type = 'cta';
-      parsed.pageNum = i;
-      slides.push(parsed);
-      hasCta = true;
-    } else {
-      var parsed = parseBlock(trimmed);
-      parsed.type = i === 0 ? 'cover' : 'content';
-      parsed.pageNum = i;
-      slides.push(parsed);
-    }
-  });
-
-  // Auto-generate CTA if config.cta !== 'none' and no explicit CTA
-  if (!hasCta && config.cta !== 'none') {
-    slides.push({
-      type: 'cta',
-      tag: null,
-      elements: [],
-      pageNum: slides.length
-    });
-  }
-
-  return { config: config, slides: slides, totalPages: slides.length };
-}
-
-function parseBlock(text) {
-  var lines = text.split('\n');
-  var elements = [];
-  var tag = null;
-  var i = 0;
-
-  while (i < lines.length) {
-    var line = lines[i];
-
-    // Horizontal divider: ***
-    if (/^\*{3,}$/.test(line.trim())) {
-      elements.push({ type: 'divider' });
-      i++;
-      continue;
-    }
-
-    // Image: ![alt](url)
-    var imgMatch = line.match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
-    if (imgMatch) {
-      elements.push({ type: 'image', alt: imgMatch[1], url: imgMatch[2] });
-      i++;
-      continue;
-    }
-
-    var tagMatch = line.match(/^\[(.+)\]$/);
-    if (tagMatch) {
-      tag = tagMatch[1];
-      i++;
-      continue;
-    }
-
-    // Big number: {87%} or {3x} or {21天}
-    var bigNumMatch = line.match(/^\{(.+)\}$/);
-    if (bigNumMatch) {
-      elements.push({ type: 'bignumber', text: bigNumMatch[1] });
-      i++;
-      continue;
-    }
-
-    if (line.indexOf('# ') === 0 && line.indexOf('## ') !== 0 && line.indexOf('### ') !== 0) {
-      var h = line.slice(2);
-      while (i + 1 < lines.length && lines[i + 1].indexOf('# ') === 0 && lines[i + 1].indexOf('## ') !== 0) {
-        i++;
-        h += '<br>' + lines[i].slice(2);
-      }
-      elements.push({ type: 'h1', text: h });
-      i++;
-      continue;
-    }
-
-    if (line.indexOf('## ') === 0 && line.indexOf('### ') !== 0) {
-      elements.push({ type: 'h2', text: line.slice(3) });
-      i++;
-      continue;
-    }
-
-    if (line.indexOf('### ') === 0) {
-      elements.push({ type: 'h3', text: line.slice(4) });
-      i++;
-      continue;
-    }
-
-    if (line.indexOf('> ') === 0) {
-      var qLines = [];
-      while (i < lines.length && lines[i].indexOf('> ') === 0) {
-        qLines.push(lines[i].slice(2));
-        i++;
-      }
-      elements.push({ type: 'quote', text: qLines.join('<br>') });
-      continue;
-    }
-
-    if (line.indexOf('|> ') === 0) {
-      elements.push({ type: 'callout', text: line.slice(3) });
-      i++;
-      continue;
-    }
-
-    if (line.indexOf('- ') === 0) {
-      var items = [];
-      while (i < lines.length && lines[i].indexOf('- ') === 0) {
-        items.push(lines[i].slice(2));
-        i++;
-      }
-      elements.push({ type: 'list', items: items });
-      continue;
-    }
-
-    if (!line.trim()) {
-      i++;
-      continue;
-    }
-
-    elements.push({ type: 'p', text: line });
-    i++;
-  }
-
-  return { tag: tag, elements: elements };
-}
-
-function renderHighlight(text, color) {
-  return text.replace(/\*\*(.+?)\*\*/g, '<span style="color:' + color + '">$1</span>');
-}
-
-// === RENDERER ===
-function getTheme(name) {
-  return THEMES[name] || THEMES['暖橘'];
-}
-
-function renderSlides(parsed) {
-  var config = parsed.config;
-  var slides = parsed.slides;
-  var theme = getTheme(config.theme);
-  var mode = config.mode === 'dark' ? 'dark' : 'light';
-  var colors = theme[mode];
-  var textAccent = mode === 'dark' ? theme.accentLight : theme.accent;
-  var container = document.getElementById('renderContainer');
-  var preview = document.getElementById('preview');
-  container.innerHTML = '';
-  preview.innerHTML = '';
-
-  var dim = getDimensions();
-  var totalPages = slides.length;
-  var contentPageNum = 0;
-  var previewW = 340;
-  var previewH = Math.round(previewW * (dim.h / dim.w));
-
-  slides.forEach(function(slide, idx) {
-    var el = document.createElement('div');
-    el.className = 'slide';
-    el.style.width = dim.w + 'px';
-    el.style.height = dim.h + 'px';
-
-    if (slide.type === 'cover') {
-      el.classList.add('cover');
-      if (config.cover === 'solid') {
-        el.style.background = theme.coverSolid;
-        el.style.color = theme.coverSolidText;
-      } else {
-        el.style.background = theme.coverGradient;
-        el.style.color = '#FFFFFF';
-      }
-      el.innerHTML = renderCover(slide, config, theme, totalPages);
-    } else if (slide.type === 'cta') {
-      el.classList.add('cta-slide');
-      if (config.cover === 'solid') {
-        el.style.background = theme.coverSolid;
-        el.style.color = theme.coverSolidText;
-      } else {
-        el.style.background = theme.coverGradient;
-        el.style.color = '#FFFFFF';
-      }
-      el.innerHTML = renderCta(slide, config, theme);
-    } else {
-      contentPageNum++;
-      var hasHero = slide.elements.length > 0 && slide.elements[0].type === 'image';
-      // Statement slide: only h1, or h1 + quote, nothing else
-      var nonEmpty = slide.elements.filter(function(e) { return e.type !== 'image'; });
-      var isStatement = nonEmpty.length >= 1 && nonEmpty[0].type === 'h1' &&
-        (nonEmpty.length === 1 || (nonEmpty.length === 2 && nonEmpty[1].type === 'quote'));
-      el.classList.add('content-slide');
-      if (hasHero) el.classList.add('has-hero');
-      if (isStatement) el.classList.add('statement-slide');
-      el.style.background = colors.bg;
-      el.style.color = colors.text;
-      if (!hasHero) el.style.borderLeftColor = theme.accent;
-      el.innerHTML = renderContent(slide, config, contentPageNum, totalPages, theme, colors, textAccent);
-    }
-
-    container.appendChild(el);
-
-    // Auto-compact: count heavy elements and shrink if too many
-    if (slide.type === 'content') {
-      var numCount = slide.elements.filter(function(e) {
-        return e.type === 'p' && /^[①②③④⑤⑥⑦⑧⑨⑩]/.test(e.text);
-      }).length;
-      var listCount = slide.elements.filter(function(e) { return e.type === 'list'; }).length;
-      var totalItems = numCount;
-      slide.elements.forEach(function(e) {
-        if (e.type === 'list') totalItems += e.items.length;
-      });
-
-      if (numCount >= 4 || totalItems >= 7) {
-        el.classList.add('compact');
-      }
-    }
-
-    var wrapper = document.createElement('div');
-    wrapper.className = 'slide-wrapper';
-    wrapper.style.width = previewW + 'px';
-    wrapper.style.height = previewH + 'px';
-
-    var numDiv = document.createElement('div');
-    numDiv.className = 'slide-number';
-    numDiv.textContent = (idx + 1) + '/' + totalPages;
-    numDiv.style.fontSize = '11px';
-    numDiv.style.width = 'auto';
-    numDiv.style.padding = '4px 10px';
-    numDiv.style.borderRadius = '12px';
-    wrapper.appendChild(numDiv);
-
-    var dlBtn = document.createElement('button');
-    dlBtn.className = 'download-btn';
-    dlBtn.innerHTML = '&#8595;';
-    dlBtn.title = '下載';
-    dlBtn.setAttribute('data-index', idx);
-    dlBtn.addEventListener('click', function(e) {
-      e.stopPropagation();
-      downloadSlide(parseInt(this.getAttribute('data-index')));
-    });
-    wrapper.appendChild(dlBtn);
-
-    var previewSlide = el.cloneNode(true);
-    previewSlide.style.transform = 'scale(' + (previewW / dim.w) + ')';
-    previewSlide.style.transformOrigin = 'top left';
-    wrapper.appendChild(previewSlide);
-
-    preview.appendChild(wrapper);
-  });
-}
-
-function renderCover(slide, config, theme, totalPages) {
-  var titleHtml = '';
-  var subtitleHtml = '';
-  var bodyHtml = '';
-  var highlightColor = theme.accentLight;
-
-  slide.elements.forEach(function(el) {
-    if (el.type === 'h1') {
-      titleHtml += '<h1>' + renderHighlight(el.text, highlightColor) + '</h1>';
-    } else if (el.type === 'h2') {
-      subtitleHtml += '<h2>' + renderHighlight(el.text, highlightColor) + '</h2>';
-    } else if (el.type === 'p') {
-      var isEnglish = /^[A-Z\s\d\-·,.!?'"]+$/.test(el.text.trim());
-      if (isEnglish) {
-        bodyHtml += '<div class="subtitle">' + el.text + '</div>';
-      } else {
-        subtitleHtml += '<h2>' + renderHighlight(el.text, highlightColor) + '</h2>';
-      }
-    }
-  });
-
-  var tagHtml = config.tag ? '<div class="tag" style="background:' + theme.accent + '">' + config.tag + '</div>' : '';
-  var sourceText = config.source ? 'Source | ' + config.source : '';
-
-  var swipeHint = totalPages > 1
-    ? '<div style="position:absolute;bottom:140px;right:72px;display:flex;align-items:center;gap:8px;opacity:0.5;font-size:20px">' +
-        '<span>滑動看更多</span>' +
-        '<span style="font-size:28px">→</span>' +
-      '</div>'
-    : '';
-
-  return tagHtml +
-    '<div class="cover-content">' +
-      titleHtml + subtitleHtml + bodyHtml +
-    '</div>' +
-    swipeHint +
-    '<div class="cover-footer">' +
-      '<span>' + sourceText + '</span>' +
-      '<span>' + config.handle + '</span>' +
-    '</div>';
-}
-
-function renderContent(slide, config, pageNum, totalPages, theme, colors, textAccent) {
-  // Check if first element is a hero image
-  var heroUrl = null;
-  var heroAlt = '';
-  if (slide.elements.length > 0 && slide.elements[0].type === 'image') {
-    heroUrl = slide.elements[0].url;
-    heroAlt = slide.elements[0].alt || '';
-    slide.elements = slide.elements.slice(1);
-  }
-
-  var tagHtml = slide.tag
-    ? '<div class="tag" style="background:' + theme.accent + '">' + slide.tag + '</div>'
-    : '<div></div>';
-  var pageStr = String(pageNum).padStart(2, '0') + '/' + String(totalPages).padStart(2, '0');
-  var highlightColor = textAccent;
-
-  var bodyHtml = '';
-  var quoteHtml = '';
-
-  // Track consecutive numbered items to merge into cards
-  var numberedQueue = [];
-
-  function flushNumbered() {
-    if (numberedQueue.length === 0) return '';
-    var html = '';
-    numberedQueue.forEach(function(item) {
-      html += '<div class="numbered-card" style="background:' + colors.calloutBg + '">' +
-        '<div class="num-badge" style="color:' + textAccent + '">' + item.num + '</div>' +
-        '<div class="num-title" style="color:' + colors.heading + '">' + renderHighlight(item.title, highlightColor) + '</div>' +
-        (item.desc ? '<div class="num-desc" style="color:' + colors.subtext + '">' + renderHighlight(item.desc, highlightColor) + '</div>' : '') +
-      '</div>';
-    });
-    numberedQueue = [];
-    return html;
-  }
-
-  slide.elements.forEach(function(el, elIdx) {
-    // If we have queued numbered items and this isn't a plain paragraph (potential desc), flush
-    if (numberedQueue.length > 0 && el.type !== 'p') {
-      bodyHtml += flushNumbered();
-    }
-
-    switch (el.type) {
-      case 'bignumber':
-        bodyHtml += '<div class="big-number" style="color:' + textAccent + '">' + el.text + '</div>';
-        break;
-      case 'h1':
-        bodyHtml += '<h1 style="color:' + colors.heading + '">' + renderHighlight(el.text, highlightColor) + '</h1>';
-        break;
-      case 'h2':
-        bodyHtml += '<h2 style="color:' + colors.heading + '">' + renderHighlight(el.text, highlightColor) + '</h2>';
-        break;
-      case 'h3':
-        bodyHtml += '<h3 style="color:' + colors.heading + '">' + renderHighlight(el.text, highlightColor) + '</h3>';
-        break;
-      case 'p':
-        if (/^[①②③④⑤⑥⑦⑧⑨⑩]/.test(el.text)) {
-          // Parse: ① **Title** or ① Title
-          var num = el.text.charAt(0);
-          var rest = el.text.slice(1).trim();
-          // Extract bold title if present
-          var boldMatch = rest.match(/^\*\*(.+?)\*\*(.*)/);
-          if (boldMatch) {
-            numberedQueue.push({ num: num, title: boldMatch[1], desc: boldMatch[2].trim() || '' });
-          } else {
-            numberedQueue.push({ num: num, title: rest, desc: '' });
-          }
-          // Check if next element is a plain p (description for this numbered item)
-          var nextEl = slide.elements[elIdx + 1];
-          if (!nextEl || nextEl.type !== 'p' || /^[①②③④⑤⑥⑦⑧⑨⑩]/.test(nextEl.text)) {
-            // No desc follows or next is another number, keep as is
-          }
-        } else if (numberedQueue.length > 0) {
-          // This paragraph is a description for the last numbered item
-          numberedQueue[numberedQueue.length - 1].desc = el.text;
-        } else {
-          bodyHtml += '<p style="color:' + colors.subtext + '">' + renderHighlight(el.text, highlightColor) + '</p>';
-        }
-        break;
-      case 'list':
-        bodyHtml += '<div class="list-group">';
-        el.items.forEach(function(item) {
-          bodyHtml += '<div class="list-item" style="color:' + colors.subtext + '"><span style="position:absolute;left:4px;top:18px;width:14px;height:14px;border-radius:50%;background:' + theme.accent + ';display:block"></span>' + renderHighlight(item, highlightColor) + '</div>';
-        });
-        bodyHtml += '</div>';
-        break;
-      case 'callout':
-        bodyHtml += '<div class="callout" style="background:' + colors.calloutBg + ';border-left-color:' + theme.accent + ';color:' + colors.subtext + '">' +
-          '<span class="callout-icon">💡</span>' +
-          '<span>' + renderHighlight(el.text, highlightColor) + '</span>' +
-        '</div>';
-        break;
-      case 'quote':
-        quoteHtml = '<div class="quote-box" style="background:' + colors.quoteBg + '">' +
-          '<div class="quote-mark" style="color:' + textAccent + '">"</div>' +
-          '<p style="color:' + textAccent + '">' + renderHighlight(el.text, highlightColor) + '</p>' +
-        '</div>';
-        break;
-      case 'divider':
-        bodyHtml += '<hr class="slide-divider" style="background:' + colors.text + '">';
-        break;
-    }
-  });
-
-  // Flush any remaining numbered items
-  bodyHtml += flushNumbered();
-
-  var sourceText = config.source ? 'Source | ' + config.source : '';
-
-  var innerHtml = '<div class="slide-head">' +
-      tagHtml +
-      '<span class="page-num" style="color:' + colors.muted + '">' + pageStr + '</span>' +
-    '</div>' +
-    '<div class="slide-body">' +
-      bodyHtml + quoteHtml +
-    '</div>' +
-    '<div class="slide-footer" style="color:' + colors.muted + ';border-top:1px solid ' + colors.muted + '30;padding-top:20px">' +
-      '<span>' + sourceText + '</span>' +
-      '<span class="handle" style="color:' + textAccent + ';background:' + textAccent + '15;padding:6px 16px;border-radius:20px">' + config.handle + '</span>' +
-    '</div>';
-
-  if (heroUrl) {
-    var dim = getDimensions();
-    var heroH = Math.round(dim.h * 0.28);
-    var bodyH = dim.h - heroH;
-    return '<img class="hero-image" src="' + heroUrl + '" alt="' + heroAlt + '" style="height:' + heroH + 'px" crossorigin="anonymous">' +
-      '<div class="hero-body" style="border-left-color:' + theme.accent + ';height:' + bodyH + 'px">' + innerHtml + '</div>';
-  }
-
-  return innerHtml;
-}
-
-// === CTA RENDERER ===
-function renderCta(slide, config, theme) {
-  var highlightColor = theme.accentLight;
-  var hasCustomContent = slide.elements && slide.elements.length > 0;
-
-  if (hasCustomContent) {
-    var html = '';
-    slide.elements.forEach(function(el) {
-      if (el.type === 'h1') {
-        html += '<h1>' + renderHighlight(el.text, highlightColor) + '</h1>';
-      } else if (el.type === 'p') {
-        html += '<p>' + renderHighlight(el.text, highlightColor) + '</p>';
-      }
-    });
-    if (config.handle) {
-      html += '<div class="cta-divider" style="background:' + highlightColor + '"></div>';
-      html += '<div class="cta-handle" style="color:' + highlightColor + '">' + config.handle + '</div>';
-    }
-    return html;
-  }
-
-  // Auto-generated CTA — use lang from frontmatter
-  var lang = (config.lang || 'zh').toLowerCase();
-
-  var CTA_LANGS = {
-    zh: { title: '喜歡這篇嗎？', sub: '儲存收藏 ・ 分享給朋友', follow: '追蹤看更多好內容' },
-    ja: { title: 'この投稿が好き？', sub: '保存 ・ シェアしよう', follow: 'フォローしてね' },
-    en: { title: 'Enjoyed this?', sub: 'Save ・ Share with a friend', follow: 'Follow for more' },
-    ko: { title: '이 글이 마음에 드셨나요?', sub: '저장 ・ 친구에게 공유', follow: '팔로우하고 더 보기' }
-  };
-  var ctaLang = CTA_LANGS[lang] || CTA_LANGS['en'];
-  var ctaTitle = ctaLang.title;
-  var ctaSub = ctaLang.sub;
-  var ctaFollow = ctaLang.follow;
-
-  var html = '';
-  html += '<div class="cta-icon">👆</div>';
-  html += '<h1>' + ctaTitle + '</h1>';
-  html += '<p>' + ctaSub + '</p>';
-  if (config.handle) {
-    html += '<div class="cta-divider" style="background:' + highlightColor + '"></div>';
-    html += '<div class="cta-handle" style="color:' + highlightColor + '">' + config.handle + '</div>';
-    html += '<p style="margin-top:16px;font-size:28px">' + ctaFollow + '</p>';
-  }
-  return html;
-}
-
-// === THEME/MODE SYNC ===
-function applyThemeMode() {
-  var theme = document.getElementById('themeSelect').value;
-  var mode = document.getElementById('modeSelect').value;
-  var cover = document.getElementById('coverSelect').value;
-  var ratio = document.getElementById('ratioSelect').value;
-  var textarea = document.getElementById('mdInput');
-  var md = textarea.value;
-
-  md = md.replace(/^(theme:\s*).+$/m, '$1' + theme);
-  md = md.replace(/^(mode:\s*).+$/m, '$1' + mode);
-  md = md.replace(/^(cover:\s*).+$/m, '$1' + cover);
-  md = md.replace(/^(ratio:\s*).+$/m, '$1' + ratio);
-
-  if (!/^theme:/m.test(md)) {
-    md = md.replace(/\n---/, '\ntheme: ' + theme + '\n---');
-  }
-  if (!/^mode:/m.test(md)) {
-    md = md.replace(/\n---/, '\nmode: ' + mode + '\n---');
-  }
-  if (!/^cover:/m.test(md)) {
-    md = md.replace(/\n---/, '\ncover: ' + cover + '\n---');
-  }
-  if (!/^ratio:/m.test(md)) {
-    md = md.replace(/\n---/, '\nratio: ' + ratio + '\n---');
-  }
-
-  textarea.value = md;
-  generate();
-}
-
-function syncDropdowns(config) {
-  var ts = document.getElementById('themeSelect');
-  var ms = document.getElementById('modeSelect');
-  var cs = document.getElementById('coverSelect');
-  var rs = document.getElementById('ratioSelect');
-  if (config.theme && ts) {
-    for (var i = 0; i < ts.options.length; i++) {
-      if (ts.options[i].value === config.theme) { ts.selectedIndex = i; break; }
-    }
-  }
-  if (config.mode && ms) {
-    ms.value = config.mode === 'dark' ? 'dark' : 'light';
-  }
-  if (config.cover && cs) {
-    cs.value = config.cover === 'solid' ? 'solid' : 'gradient';
-  }
-  if (config.ratio && rs) {
-    for (var i = 0; i < rs.options.length; i++) {
-      if (rs.options[i].value === config.ratio) { rs.selectedIndex = i; break; }
-    }
-  }
-}
-
-// === GENERATE ===
-function generate() {
-  var md = document.getElementById('mdInput').value;
-  if (!md.trim()) return;
-  var parsed = parseMd(md);
-  syncDropdowns(parsed.config);
-  renderSlides(parsed);
-}
-
-// === DOWNLOAD ===
-async function downloadSlide(index) {
-  var container = document.getElementById('renderContainer');
-  var slides = container.querySelectorAll('.slide');
-  if (!slides[index]) return;
-
-  var dim = getDimensions();
-  var canvas = await html2canvas(slides[index], {
-    width: dim.w,
-    height: dim.h,
-    scale: 2,
-    useCORS: true,
-    backgroundColor: null
-  });
-
-  var link = document.createElement('a');
-  link.download = 'slide-' + String(index + 1).padStart(2, '0') + '.png';
-  link.href = canvas.toDataURL('image/png');
-  link.click();
-}
-
-async function downloadAll() {
-  var container = document.getElementById('renderContainer');
-  var slides = container.querySelectorAll('.slide');
-  if (slides.length === 0) return;
-
-  var loading = document.getElementById('loading');
-  loading.classList.add('active');
-
-  for (var i = 0; i < slides.length; i++) {
-    await downloadSlide(i);
-    await new Promise(function(r) { setTimeout(r, 300); });
-  }
-
-  loading.classList.remove('active');
-}
-
-// === FILE UPLOAD ===
-document.getElementById('fileInput').addEventListener('change', function(e) {
-  var file = e.target.files[0];
-  if (!file) return;
-  var reader = new FileReader();
-  reader.onload = function(ev) {
-    document.getElementById('mdInput').value = ev.target.result;
-    generate();
-  };
-  reader.readAsText(file);
-  e.target.value = '';
-});
-
-// === LIVE PREVIEW (debounced) ===
-var _liveTimer = null;
-document.getElementById('mdInput').addEventListener('input', function() {
-  clearTimeout(_liveTimer);
-  _liveTimer = setTimeout(generate, 300);
-});
-
-// Cmd+Enter still works as instant generate
-document.getElementById('mdInput').addEventListener('keydown', function(e) {
-  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-    e.preventDefault();
-    clearTimeout(_liveTimer);
-    generate();
-  }
-});
-
-// === TAB SWITCH ===
-function switchTab(tab) {
-  var btns = document.querySelectorAll('.tab-btn');
-  var textarea = document.getElementById('mdInput');
-  var guide = document.getElementById('guidePanel');
-  btns.forEach(function(b) { b.classList.remove('active'); });
-  if (tab === 'guide') {
-    btns[1].classList.add('active');
-    textarea.style.display = 'none';
-    guide.style.display = 'block';
-  } else {
-    btns[0].classList.add('active');
-    textarea.style.display = 'block';
-    guide.style.display = 'none';
-  }
-}
-
-function buildGuide() {
-  var g = document.getElementById('guidePanel');
-  var html = '';
-
-  html += '<div style="margin-bottom:24px">';
-  html += '<div style="color:#fff;font-size:16px;font-weight:700;margin-bottom:12px">Frontmatter 設定</div>';
-  html += '<table style="width:100%;border-collapse:collapse;font-size:12px">';
-  html += '<tr style="border-bottom:1px solid #333"><td style="padding:6px 8px;color:#E8764A;white-space:nowrap">tag:</td><td style="padding:6px 8px">封面 &amp; 內容頁的標籤文字</td></tr>';
-  html += '<tr style="border-bottom:1px solid #333"><td style="padding:6px 8px;color:#E8764A;white-space:nowrap">source:</td><td style="padding:6px 8px">來源出處（顯示在頁尾左側）</td></tr>';
-  html += '<tr style="border-bottom:1px solid #333"><td style="padding:6px 8px;color:#E8764A;white-space:nowrap">handle:</td><td style="padding:6px 8px">你的帳號（顯示在頁尾右側）</td></tr>';
-  html += '<tr style="border-bottom:1px solid #333"><td style="padding:6px 8px;color:#E8764A;white-space:nowrap">theme:</td><td style="padding:6px 8px">色彩模板名稱</td></tr>';
-  html += '<tr style="border-bottom:1px solid #333"><td style="padding:6px 8px;color:#E8764A;white-space:nowrap">mode:</td><td style="padding:6px 8px">light / dark（內容頁底色）</td></tr>';
-  html += '<tr style="border-bottom:1px solid #333"><td style="padding:6px 8px;color:#E8764A;white-space:nowrap">cover:</td><td style="padding:6px 8px">gradient / solid（封面樣式）</td></tr>';
-  html += '<tr style="border-bottom:1px solid #333"><td style="padding:6px 8px;color:#E8764A;white-space:nowrap">ratio:</td><td style="padding:6px 8px">4:5 / 1:1 / 9:16 / 16:9</td></tr>';
-  html += '<tr><td style="padding:6px 8px;color:#E8764A;white-space:nowrap">cta:</td><td style="padding:6px 8px">auto（預設）/ none（不要結尾頁）</td></tr>';
-  html += '</table>';
-  html += '</div>';
-
-  // Structure diagram
-  html += '<div style="color:#fff;font-size:16px;font-weight:700;margin-bottom:12px">文件結構</div>';
-  html += '<div style="background:#141414;border-radius:8px;padding:16px;font-family:monospace;font-size:12px;line-height:2;margin-bottom:24px;overflow-x:auto">';
-  html += '<span style="color:#555">---</span><br>';
-  html += '<span style="color:#E8764A">tag:</span> <span style="color:#98C379">好文分享</span><br>';
-  html += '<span style="color:#E8764A">source:</span> <span style="color:#98C379">來源</span><br>';
-  html += '<span style="color:#E8764A">handle:</span> <span style="color:#98C379">@帳號</span><br>';
-  html += '<span style="color:#E8764A">theme:</span> <span style="color:#98C379">暖橘</span><br>';
-  html += '<span style="color:#E8764A">mode:</span> <span style="color:#98C379">light</span><br>';
-  html += '<span style="color:#E8764A">cover:</span> <span style="color:#98C379">gradient</span><br>';
-  html += '<span style="color:#555">---</span><br><br>';
-  html += '<span style="color:#666">↑ 設定區 ─────────────────</span><br>';
-  html += '<span style="color:#666">↓ 封面（第一區塊）────────</span><br><br>';
-  html += '<span style="color:#E8764A">#</span> 大標題含**<span style="color:#E8764A">強調色</span>**<br><br>';
-  html += '副標題文字<br><br>';
-  html += 'ENGLISH SUBTITLE<br><br>';
-  html += '<span style="color:#555">---</span> <span style="color:#666">← 分頁線</span><br><br>';
-  html += '<span style="color:#666">↓ 內容頁（可重複多頁）───</span><br><br>';
-  html += '<span style="color:#61AFEF">[標籤名]</span> <span style="color:#666">← 該頁標籤</span><br><br>';
-  html += '<span style="color:#E8764A">#</span> 頁面標題<br><br>';
-  html += '內文段落...<br><br>';
-  html += '<span style="color:#555">---</span> <span style="color:#666">← 下一頁</span>';
-  html += '</div>';
-
-  // Syntax reference
-  html += '<div style="color:#fff;font-size:16px;font-weight:700;margin-bottom:12px">語法對照</div>';
-  html += '<table style="width:100%;border-collapse:collapse;font-size:12px">';
-
-  var rows = [
-    ['# 標題', '大標題（封面/內容）', '#fff'],
-    ['## 副標題', '中標題', '#fff'],
-    ['### 小標題', '小標題', '#fff'],
-    ['**文字**', '主題色強調文字', '#E8764A'],
-    ['---', '分隔為下一頁', '#555'],
-    ['[標籤名]', '該頁左上角標籤 pill', '#61AFEF'],
-    ['- 項目', '圓點列表', '#fff'],
-    ['> 引用文字', '底部引用框（主題色文字）', '#E8764A'],
-    ['|> 文字', '左邊橘線 callout', '#fff'],
-    ['① **粗體**', '編號項目（數字為主題色）', '#E8764A'],
-    ['&lt;br&gt;', '標題內強制換行', '#555'],
-    ['![](url)', '首圖（頂部 1/3 滿版圖片）', '#61AFEF'],
-    ['{87%}', '超大數字（數據型頁面）', '#E8764A'],
-    ['***', '頁內水平分隔線', '#555'],
-    ['cta / [cta]', '結尾 CTA 頁（自動產生或自訂）', '#61AFEF']
-  ];
-
-  rows.forEach(function(r) {
-    html += '<tr style="border-bottom:1px solid #333">';
-    html += '<td style="padding:8px;font-family:monospace;color:#98C379;white-space:nowrap">' + r[0] + '</td>';
-    html += '<td style="padding:8px">' + r[1] + '</td>';
-    html += '</tr>';
-  });
-
-  html += '</table>';
-
-  // Visual layout diagram
-  html += '<div style="color:#fff;font-size:16px;font-weight:700;margin:24px 0 12px">頁面佈局</div>';
-
-  // Cover layout
-  html += '<div style="display:flex;gap:12px;margin-bottom:16px">';
-
-  html += '<div style="flex:1;background:#2A1A0C;border-radius:8px;padding:16px;font-size:11px;line-height:1.6">';
-  html += '<div style="color:#E8764A;font-size:10px;font-weight:700;margin-bottom:8px">封面</div>';
-  html += '<div style="background:#C45A28;color:#fff;display:inline-block;padding:2px 8px;border-radius:3px;font-size:10px;margin-bottom:8px">tag</div><br>';
-  html += '<div style="color:#fff;font-size:16px;font-weight:900;margin:12px 0 4px">大標題</div>';
-  html += '<div style="color:#E8764A;font-size:16px;font-weight:900">強調字</div>';
-  html += '<div style="color:rgba(255,255,255,0.7);font-size:10px;margin:8px 0">副標題</div>';
-  html += '<div style="color:rgba(255,255,255,0.5);font-size:9px;letter-spacing:1px">ENGLISH</div>';
-  html += '<div style="border-top:1px solid rgba(255,255,255,0.3);margin-top:16px;padding-top:8px;color:rgba(255,255,255,0.5);font-size:9px;display:flex;justify-content:space-between"><span>Source</span><span>@handle</span></div>';
-  html += '</div>';
-
-  html += '<div style="flex:1;background:#fff;border-radius:8px;padding:16px;font-size:11px;line-height:1.6">';
-  html += '<div style="color:#C45A28;font-size:10px;font-weight:700;margin-bottom:8px">內容頁</div>';
-  html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div style="background:#C45A28;color:#fff;display:inline-block;padding:2px 8px;border-radius:3px;font-size:10px">[標籤]</div><span style="color:#999;font-size:10px">01</span></div>';
-  html += '<div style="color:#1A1A1A;font-size:14px;font-weight:900;margin:8px 0">頁面標題</div>';
-  html += '<div style="color:#444;font-size:10px;margin:6px 0">內文段落...</div>';
-  html += '<div style="color:#444;font-size:10px;padding-left:10px;margin:3px 0">・列表項目</div>';
-  html += '<div style="border-left:3px solid #C45A28;padding-left:8px;color:#555;font-size:9px;margin:6px 0;background:#F5F0EB;padding:4px 8px;border-radius:0 4px 4px 0">|> callout</div>';
-  html += '<div style="background:#F5F0EB;border-radius:6px;padding:8px;text-align:center;margin-top:12px"><div style="color:#C45A28;font-size:9px">引用框 &gt; 文字</div></div>';
-  html += '<div style="border-top:1px solid #eee;margin-top:10px;padding-top:6px;color:#999;font-size:9px;display:flex;justify-content:space-between"><span>Source</span><span style="color:#C45A28">@handle</span></div>';
-  html += '</div>';
-
-  html += '</div>';
-
-  g.innerHTML = html;
-}
-
-// Generate on load
-window.addEventListener('DOMContentLoaded', function() {
-  buildGuide();
-  generate();
-});
-</script>
 
 </body>
 </html>

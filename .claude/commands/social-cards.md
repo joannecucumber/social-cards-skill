@@ -21,7 +21,7 @@ After receiving the content, ask these questions (all at once, not one by one):
 1. **語言** — 這篇貼文要用什麼語言？（繁中 / 英文 / 日文 / 其他）
 2. **Handle** — 你的社群帳號是什麼？（例如 @yourstudio）
 3. **風格偏好** — 有偏好的色系嗎？還是讓我自動選？
-   - 可選：暖橘 / vibe-reader / 莓果紫 / 森林綠 / 玫瑰金 / 日落粉 / 海洋藍 / 午夜
+   - 可選：暖橘 / 莓果紫 / 森林綠 / 玫瑰金 / 日落粉 / 海洋藍 / 午夜
 4. **頁數** — 希望幾頁？（建議 5-7 頁，或讓我根據內容決定）
 
 If the user says "自動" or "你決定", make all decisions yourself based on the content tone.

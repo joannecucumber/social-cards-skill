@@ -42,7 +42,7 @@ lang: zh
 | tag | 標籤 pill（封面 + 內容頁左上角） | 自訂文字 |
 | source | 頁尾左側來源文字 | 自訂文字 |
 | handle | 頁尾右側帳號 | @xxx |
-| theme | 色彩主題 | 暖橘 / vibe-reader / 莓果紫 / 森林綠 / 玫瑰金 / 日落粉 / 海洋藍 / 午夜 |
+| theme | 色彩主題 | 暖橘 / 莓果紫 / 森林綠 / 玫瑰金 / 日落粉 / 海洋藍 / 午夜 |
 | mode | 內容頁底色 | light / dark |
 | ratio | 圖片比例 | 4:5（IG 直式）/ 1:1（正方形）/ 9:16（Story）/ 16:9（橫式） |
 | cover | 封面樣式 | gradient（漸層）/ solid（純色） |

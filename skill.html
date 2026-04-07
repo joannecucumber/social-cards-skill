@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Social Cards — Download Skill</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Inter', 'Noto Sans TC', -apple-system, sans-serif;
+  background: #F7F5F3;
+  color: #37322F;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+.serif { font-family: 'Instrument Serif', serif; }
+
+/* === NAV === */
+.nav-outer {
+  position: fixed; top: 9px; left: 0; right: 0; z-index: 100;
+  display: flex; justify-content: center;
+}
+.nav-bar {
+  max-width: 700px; width: 100%;
+  padding: 6px 8px 6px 16px;
+  background: #F7F5F3;
+  border-radius: 50px;
+  box-shadow: 0 0 0 2px #fff;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.nav-brand { font-size: 18px; font-weight: 600; color: #2F3037; text-decoration: none; }
+.nav-links { display: flex; gap: 16px; }
+.nav-links a {
+  color: rgba(49,45,43,0.8); font-size: 13px; font-weight: 500;
+  text-decoration: none; transition: color 0.2s;
+}
+.nav-links a:hover { color: #37322F; }
+.btn-ghost {
+  padding: 6px 14px; background: #fff; border-radius: 50px;
+  border: none; font-size: 13px; font-weight: 500; color: #37322F;
+  box-shadow: 0 1px 2px rgba(55,50,47,0.12); cursor: pointer;
+  font-family: inherit; text-decoration: none;
+}
+.btn-primary {
+  padding: 6px 14px; background: #37322F; border-radius: 50px;
+  border: none; font-size: 13px; font-weight: 500; color: #fff;
+  box-shadow: inset 0 0 0 2.5px rgba(255,255,255,0.08); cursor: pointer;
+  font-family: inherit; text-decoration: none;
+  transition: background 0.2s;
+}
+.btn-primary:hover { background: #2A2520; }
+
+/* === LAYOUT === */
+.page-container {
+  max-width: 1060px; margin: 0 auto; position: relative;
+  border-left: 1px solid rgba(55,50,47,0.12);
+  border-right: 1px solid rgba(55,50,47,0.12);
+}
+
+/* === HERO === */
+.skill-hero {
+  padding: 160px 44px 60px;
+  border-bottom: 1px solid rgba(55,50,47,0.12);
+}
+.skill-hero h1 {
+  font-family: 'Instrument Serif', serif;
+  font-size: 56px; font-weight: 400; line-height: 1.2;
+  color: #37322F; margin-bottom: 16px;
+}
+.skill-hero p {
+  font-size: 18px; color: rgba(55,50,47,0.8); line-height: 1.6;
+  max-width: 560px; margin-bottom: 32px; font-weight: 500;
+}
+.skill-hero .btn-primary {
+  padding: 10px 32px; font-size: 15px; height: 44px;
+  display: inline-flex; align-items: center; gap: 8px;
+}
+
+/* === INSTALL STEPS === */
+.install-section {
+  padding: 80px 44px;
+  border-bottom: 1px solid rgba(55,50,47,0.12);
+}
+.section-label {
+  font-size: 12px; font-weight: 600; color: rgba(55,50,47,0.5);
+  text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px;
+}
+.section-title {
+  font-family: 'Instrument Serif', serif;
+  font-size: 40px; font-weight: 400; line-height: 1.2;
+  color: #37322F; margin-bottom: 48px;
+}
+
+.install-steps {
+  display: flex; flex-direction: column; gap: 32px;
+}
+.install-step {
+  display: flex; gap: 24px; align-items: flex-start;
+}
+.step-num {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: #37322F; color: #fff; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 600;
+}
+.step-content { flex: 1; }
+.step-content h4 {
+  font-size: 16px; font-weight: 600; color: #49423D; margin-bottom: 8px;
+}
+.step-content p {
+  font-size: 14px; color: #605A57; line-height: 1.7; margin-bottom: 12px;
+}
+
+/* === CODE BLOCK === */
+.code-block {
+  background: #1E1E1E; border-radius: 8px; padding: 20px 24px;
+  position: relative; overflow-x: auto;
+}
+.code-block code {
+  font-family: 'SF Mono', 'Fira Code', Consolas, monospace;
+  font-size: 13px; color: #D4D4D4; line-height: 1.8;
+  white-space: pre;
+}
+.code-block .comment { color: #6A9955; }
+.code-block .cmd { color: #DCDCAA; }
+.copy-btn {
+  position: absolute; top: 12px; right: 12px;
+  background: rgba(255,255,255,0.1); border: none;
+  border-radius: 6px; padding: 6px 12px;
+  color: #999; font-size: 12px; cursor: pointer;
+  font-family: inherit; transition: background 0.2s;
+}
+.copy-btn:hover { background: rgba(255,255,255,0.2); color: #fff; }
+.copy-btn.copied { color: #4EC9B0; }
+
+/* === REQUIREMENTS === */
+.req-section {
+  padding: 80px 44px;
+  border-bottom: 1px solid rgba(55,50,47,0.12);
+}
+.req-grid {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px;
+  margin-top: 32px;
+}
+.req-card {
+  padding: 24px; border: 1px solid #e0dedb; border-radius: 12px;
+  background: #fff;
+}
+.req-card h4 {
+  font-size: 15px; font-weight: 600; color: #49423D; margin-bottom: 8px;
+  display: flex; align-items: center; gap: 8px;
+}
+.req-card p {
+  font-size: 14px; color: #605A57; line-height: 1.6;
+}
+.req-card a {
+  color: #37322F; font-weight: 600; text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* === USAGE === */
+.usage-section {
+  padding: 80px 44px;
+  border-bottom: 1px solid rgba(55,50,47,0.12);
+}
+.usage-example {
+  margin-top: 32px;
+}
+.usage-example h4 {
+  font-size: 14px; font-weight: 600; color: rgba(55,50,47,0.5);
+  margin-bottom: 12px;
+}
+
+/* === CTA === */
+.cta-section {
+  padding: 60px 44px;
+  text-align: center;
+  border-bottom: 1px solid rgba(55,50,47,0.12);
+  position: relative; overflow: hidden;
+}
+.cta-section::before {
+  content: ''; position: absolute; inset: 0;
+  background: repeating-linear-gradient(
+    -45deg, transparent, transparent 15px,
+    rgba(3,7,18,0.03) 15px, rgba(3,7,18,0.03) 16px
+  );
+}
+.cta-content {
+  position: relative; z-index: 1;
+}
+.cta-section h2 {
+  font-size: 32px; font-weight: 600; color: #49423D;
+  margin-bottom: 16px;
+}
+.cta-section p {
+  font-size: 15px; color: #605A57; margin-bottom: 24px;
+}
+.cta-btns {
+  display: flex; justify-content: center; gap: 12px;
+}
+
+/* === FOOTER === */
+.footer {
+  padding: 32px 44px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.footer-brand { font-size: 14px; font-weight: 600; color: #49423D; }
+.footer-links-bottom { display: flex; gap: 24px; }
+.footer-links-bottom a {
+  font-size: 13px; color: #605A57; text-decoration: none;
+}
+.footer-links-bottom a:hover { color: #37322F; }
+
+/* === RESPONSIVE === */
+@media (max-width: 768px) {
+  .skill-hero { padding: 120px 24px 48px; }
+  .skill-hero h1 { font-size: 36px; }
+  .install-section, .req-section, .usage-section { padding: 60px 24px; }
+  .section-title { font-size: 28px; }
+  .req-grid { grid-template-columns: 1fr; }
+  .nav-links { display: none; }
+  .footer { flex-direction: column; gap: 16px; text-align: center; }
+  .cta-btns { flex-direction: column; align-items: center; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<div class="nav-outer">
+  <nav class="nav-bar">
+    <div style="display:flex;align-items:center;gap:20px">
+      <a href="index.html" class="nav-brand">Social Cards</a>
+      <div class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="app.html">Editor</a>
+        <a href="skill.html">Skill</a>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <a href="app.html" class="btn-primary">Open App</a>
+    </div>
+  </nav>
+</div>
+
+<div class="page-container">
+
+  <!-- HERO -->
+  <section class="skill-hero">
+    <div class="section-label">Claude Code Skill</div>
+    <h1>One command,<br>carousel done.</h1>
+    <p>Install the /social-cards skill for Claude Code. Paste an article, answer a few questions, get PNG images.</p>
+    <a href="https://github.com/joannecucumber/social-cards-skill" target="_blank" class="btn-primary">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0112 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.300 24 12c0-6.627-5.374-12-12-12z"/></svg>
+      View on GitHub
+    </a>
+  </section>
+
+  <!-- REQUIREMENTS -->
+  <section class="req-section">
+    <div class="section-label">Prerequisites</div>
+    <h2 class="section-title">What you need</h2>
+    <div class="req-grid">
+      <div class="req-card">
+        <h4>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#49423D" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 9h6v6H9z"/></svg>
+          Bun
+        </h4>
+        <p>JavaScript runtime. Install with:<br><code style="font-size:12px;background:#f0eeec;padding:2px 6px;border-radius:4px">curl -fsSL https://bun.sh/install | bash</code></p>
+      </div>
+      <div class="req-card">
+        <h4>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#49423D" stroke-width="2"><path d="M4 17l6-6-6-6M12 19h8"/></svg>
+          Claude Code
+        </h4>
+        <p>Anthropic's CLI tool. <a href="https://claude.ai/code" target="_blank">Get it here</a></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- INSTALL -->
+  <section class="install-section">
+    <div class="section-label">Installation</div>
+    <h2 class="section-title">Three steps to set up</h2>
+
+    <div class="install-steps">
+      <div class="install-step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <h4>Clone the repository</h4>
+          <div class="code-block">
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            <code>git clone https://github.com/joannecucumber/social-cards-skill.git
+cd social-cards-skill</code>
+          </div>
+        </div>
+      </div>
+
+      <div class="install-step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <h4>Install dependencies</h4>
+          <p>This downloads Puppeteer + Chromium (~170MB, first time only).</p>
+          <div class="code-block">
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            <code>bun install</code>
+          </div>
+        </div>
+      </div>
+
+      <div class="install-step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <h4>Copy the skill to Claude Code</h4>
+          <div class="code-block">
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            <code>cp .claude/commands/social-cards.md ~/.claude/commands/</code>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- USAGE -->
+  <section class="usage-section">
+    <div class="section-label">Usage</div>
+    <h2 class="section-title">How to use it</h2>
+
+    <div class="usage-example">
+      <h4>In Claude Code</h4>
+      <div class="code-block" style="margin-bottom:24px">
+        <code><span class="comment"># Type this in Claude Code:</span>
+/social-cards
+
+<span class="comment"># Or with content directly:</span>
+/social-cards &lt;paste your article here&gt;</code>
+      </div>
+
+      <h4>Claude will ask you</h4>
+      <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:24px">
+        <div style="display:flex;gap:12px;align-items:center">
+          <div style="width:28px;height:28px;border-radius:50%;background:#f0eeec;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;flex-shrink:0">1</div>
+          <span style="font-size:14px;color:#605A57">What language? (zh / en / ja / ko)</span>
+        </div>
+        <div style="display:flex;gap:12px;align-items:center">
+          <div style="width:28px;height:28px;border-radius:50%;background:#f0eeec;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;flex-shrink:0">2</div>
+          <span style="font-size:14px;color:#605A57">Your social handle (e.g. @yourstudio)</span>
+        </div>
+        <div style="display:flex;gap:12px;align-items:center">
+          <div style="width:28px;height:28px;border-radius:50%;background:#f0eeec;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;flex-shrink:0">3</div>
+          <span style="font-size:14px;color:#605A57">Color theme preference (or let AI decide)</span>
+        </div>
+      </div>
+
+      <h4>Standalone CLI</h4>
+      <div class="code-block">
+        <code><span class="comment"># Render from a markdown file</span>
+bun render.ts my-article.md output/
+
+<span class="comment"># Render from stdin</span>
+cat content.md | bun render.ts - output/</code>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-section">
+    <div class="cta-content">
+      <h2>Or just use the editor</h2>
+      <p>Don't want to install anything? Use the browser editor directly.</p>
+      <div class="cta-btns">
+        <a href="app.html" class="btn-primary" style="padding:10px 32px;font-size:15px">Open editor</a>
+        <a href="index.html" class="btn-ghost" style="padding:10px 32px;font-size:15px">Back to home</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <div class="footer-brand">Social Cards</div>
+    <div class="footer-links-bottom">
+      <a href="index.html">Home</a>
+      <a href="app.html">Editor</a>
+      <a href="https://github.com/joannecucumber/social-cards-skill" target="_blank">GitHub</a>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function copyCode(btn) {
+  var code = btn.parentElement.querySelector('code').textContent;
+  navigator.clipboard.writeText(code).then(function() {
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(function() {
+      btn.textContent = 'Copy';
+      btn.classList.remove('copied');
+    }, 2000);
+  });
+}
+</script>
+
+</body>
+</html>
